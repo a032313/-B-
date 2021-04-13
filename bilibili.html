@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .animation_banner{
+            position: absolute;
+            top:0;
+          
+            left: 0;
+            right: 0;
+            overflow:hidden;
+        }
+        .layer{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left:0;
+            top:0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+    <script src="./js/jquery-1.10.2.js"></script>
+    <script>
+        $(()=>{
+        // 第一次移入鼠标的坐标
+        let client_x=0;
+         // 鼠标相对于第一次移入的偏移量
+        let offset_x=0;
+        // TranslateX的初始值
+        var chushizhi_X=[];
+         // TranslateY的初始值
+        var chushizhi_Y=[];
+        // 透明度的初始值
+        var chushizhi_opacity=[];
+        // translate偏移的系数（根据从视口开始处到结尾处的translateX变化值/电脑屏幕的横轴像素,再结合实际适当微调，得出系数）
+        var xishu=[0.0652,0.0652,0.0876,0.287,0.073,0.036,0.456,0.547,0.261,0.377,0.736,0.978,0.968,1.368,1.955];
+        // 透明度的改变系数，0为不改变，（根据透明度变化值/移动的像素，这里都是移动屏幕像素X轴的一半，就变化结束了）
+        var opaXishu=[0,0,0,0,0,-0.0012,0,0,0.0012,0.0012,0,0,0.00052,0,0];
+        // 定义一个函数，用来获取img的初始值，存入全局数组，方便以后恢复与计算。
+        const loadVal=()=>{
+            $(".layer>img").each((index,domEle)=>{
+                chushizhi_X[index]=Number($(domEle).css("transform").replace(/[^0-9\-.,]/g,'').split(',')[4]);
+                chushizhi_Y[index]=Number($(domEle).css("transform").replace(/[^0-9\-.,]/g,'').split(',')[5]);
+                chushizhi_opacity[index]=Number($(domEle).css("opacity"));
+            });
+    }
+    // 执行函数，箭头函数不存在函数提升
+        loadVal();
+        // whileH函数，进行遍历赋值，根据下标来判断具体的偏移量，与改变值
+        const whileH=(xishu,e)=>{
+
+                // 这里e.clientX为当前鼠标的视口坐标，client_x为全局变量，第一次移入元素的值，来判断鼠标移入后向左还是向右移动
+                 $(".layer>img").each((index,domEle)=>{
+                    //  这个变量来设置变化后的透明度
+                    let opaWy;
+                    if(index==5){
+                         opaWy=(e.clientX>client_x)?chushizhi_opacity[index]-offset_x*opaXishu[index]:chushizhi_opacity[index];
+                    }
+                    else if(index==8||index==9){
+                        opaWy=(e.clientX>client_x)?chushizhi_opacity[index]:chushizhi_opacity[index]-offset_x*opaXishu[index];
+                    }
+                   
+                    else{
+                        opaWy=chushizhi_opacity[index]-offset_x*opaXishu[index];
+                    }
+                    // 该变量设置变化后的translateX
+                   let translate_x=chushizhi_X[index]-offset_x*xishu[index];
+                    
+                   $(domEle).css({"transform":`scale(1) translate(${translate_x}px,${chushizhi_Y[index]}px) rotate(0deg)`
+                ,"opacity":`${opaWy}`}); 
+                   
+                  });
+                 }
+
+        $(".animation_banner").mousemove(e=>{
+            // 鼠标移入后清除img的过渡效果
+            $(".layer>img").css("transition","" );
+            // 判断是否第一次移入
+            if(client_x==0){
+            client_x=e.clientX;
+         }
+         // 这计算鼠标偏移量
+           offset_x=e.clientX-client_x;
+           whileH(xishu,e);
+         });
+        
+         $(".animation_banner").mouseleave(e=>{
+            // 鼠标移开后清除全局变量，不然影响下次移入
+            client_x=0;
+            
+            offset_x=0;
+            // 为所有的img添加过渡效果
+            $(".layer>img").css("transition","all .2s linear" );
+             // 将样式还原为初始值
+            $(".layer>img").each((index,domEle)=>{
+               
+               
+               $(domEle).css({"transform":`scale(1) translate(${chushizhi_X[index]}px,${chushizhi_Y[index]}px) rotate(0deg)`
+            ,"opacity":`${chushizhi_opacity[index]}`}); 
+          
+
+         });
+
+        });
+
+        });
+    </script>
+</head>
+<body>
+        <div class="animation_banner">
+            <div class="layer"><img src="./img/layer1.png" height="180px" width="4833px" data-height="360px" data-width="9666px" 
+                style="transform: scale(1) translate(0px, -15px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layer2.png" height="180px" width="4833px" data-height="360px" data-width="9666px"
+                style="transform: scale(1) translate(1100px, 0px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layer3.png" height="162px" width="1585px" data-height="360px" data-width="3523px"
+                style="transform: scale(1) translate(675px, 0px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layer4.png" height="176px" width="1439px" data-height="360px" data-width="2938px"
+                style="transform: scale(1) translate(-637px, 0px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layer5.png" height="62px" width="250px" data-height="139px" data-width="556px"
+                style="transform: scale(1) translate(607.5px, 45px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layer6.png" height="84px" width="205px" data-height="308px" data-width="734px"
+                style="transform: scale(1) translate(252px, 36.4px) rotate(0deg); opacity: 0;"></div>
+            <div class="layer"><img src="./img/layer7.png" height="125px" width="1229px" data-height="180px" data-width="1757px"
+                style="transform: scale(1) translate(112px, 14px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layer8.png" height="81px" width="1229px" data-height="116px" data-width="1757px"
+                style="transform: scale(1) translate(-350px, 49px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layer9.png" height="138px" width="198px" data-height="346px" data-width="497px"
+                style="transform: scale(1) translate(-240px, 16px) rotate(0deg); opacity: 0;"></div>
+            <div class="layer"><img src="./img/layerx.png" height="102px" width="58px" data-height="256px" data-width="146px"
+                style="transform: scale(1) translate(-340px, 32px) rotate(0deg); opacity: 0;"></div>
+            <div class="layer"><img src="./img/layerx1.png" height="114px" width="270px" data-height="254px" data-width="602px"
+                style="transform: scale(1) translate(-90px, 13.5px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layerx2.png" height="180px" width="2138px" data-height="360px" data-width="4277px"
+                style="transform: scale(1) translate(100px, 0px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layerx3.png" height="147px" width="419px" data-height="327px" data-width="933px"
+                style="transform: scale(1) translate(216px, 13.5px) rotate(0deg); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layerx4.png" height="211px" width="444px" data-height="353px" data-width="740px"
+                style="transform: scale(1) translate(2100px, 0px) rotate(0deg); filter: blur(2px); opacity: 1;"></div>
+            <div class="layer"><img src="./img/layerx5.png" height="180px" width="958px" data-height="360px" data-width="1916px"
+                style="transform: scale(1) translate(-1000px, 0px) rotate(0deg); filter: blur(1px); opacity: 1;"></div>
+
+            <canvas></canvas>
+        </div>
+</body>
+</html>
